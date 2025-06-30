@@ -1,0 +1,150 @@
+local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+
+local Window = Rayfield:CreateWindow({
+   Name = "Z00M-Hub",
+   Icon = 0,
+   LoadingTitle = "OPBH Script",
+   LoadingSubtitle = "by Z00M",
+   ShowText = "Script",
+   Theme = "Default",
+   ToggleUIKeybind = "K",
+   DisableRayfieldPrompts = false,
+   DisableBuildWarnings = false,
+   ConfigurationSaving = {
+      Enabled = true,
+      FolderName = "OPBH",
+      FileName = "Z00M Hub"
+   },
+   Discord = {
+      Enabled = false,
+      Invite = "noinvitelink",
+      RememberJoins = true
+   },
+   KeySystem = false,
+   KeySettings = {
+      Title = "Untitled",
+      Subtitle = "Key System",
+      Note = "No method of obtaining the key is provided",
+      FileName = "Key",
+      SaveKey = true,
+      GrabKeyFromSite = false,
+      Key = {"Hello"}
+   }
+})
+
+local Tab = Window:CreateTab("Main", 4483362458)
+
+local WalkSpeedSlider = Tab:CreateSlider({
+    Name = "WalkSpeed",
+    Range = {16, 300},
+    Increment = 1,
+    Suffix = "Speed",
+    CurrentValue = 16,
+    Flag = "WalkSpeedSlider",
+    Callback = function(Value)
+        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
+    end,
+})
+
+ JumpHeightSlider = Tab:CreateSlider({
+   Name = "Jump Height",
+   Range = {50, 250},
+   Increment = 10,
+   Suffix = "Jump Power",
+   CurrentValue = 50,
+   Flag = "JumpHeightSlider",
+   Callback = function(Value)
+       local player = game.Players.LocalPlayer
+       if player and player.Character then
+           local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+           if humanoid then
+               humanoid.JumpPower = Value
+           end
+       end
+   end,
+})
+
+local TabQuests = Window:CreateTab("Quests", 4483362458)
+
+local function createQuestButton(name, callback)
+    return TabQuests:CreateButton({
+        Name = name,
+        Callback = callback
+    })
+end
+
+createQuestButton("Bandit", function() end)
+createQuestButton("Snow Bandit", function() end)
+createQuestButton("Savages", function() end)
+createQuestButton("Toxic Zombie", function() end)
+createQuestButton("Skeleton", function() end)
+createQuestButton("Sky Warriors", function() end)
+createQuestButton("Obsidmon", function() end)
+createQuestButton("Suney", function() end)
+
+local TabIslands = Window:CreateTab("Islands", 4483362458)
+
+local function teleportTo(position)
+    game.Players.LocalPlayer.Character:MoveTo(position)
+end
+
+local function createIslandButton(name, position)
+    return TabIslands:CreateButton({
+        Name = name,
+        Callback = function()
+            teleportTo(position)
+        end
+    })
+end
+
+createIslandButton("Teleport To Spawn", Vector3.new(-1446.97, 16.51, 1353.49))
+createIslandButton("Waterfalls", Vector3.new(289.32, 10.38, 73.82))
+createIslandButton("Snow Island", Vector3.new(224.84, 26.80, -2451.32))
+createIslandButton("Savage Island", Vector3.new(-2936.60, 13.83, -6129.01))
+createIslandButton("Sky Island", Vector3.new(-4673.35, 2157.41, 6530.80))
+createIslandButton("Great Desert", Vector3.new(1404.66, 16.01, 2172.99))
+createIslandButton("Graveyard (Zombie)", Vector3.new(3282, 4, 5913))
+createIslandButton("Neo Island", Vector3.new(-451.32, 50.80, 5147.60))
+createIslandButton("Tribal Village (Sakura)", Vector3.new(-5946.32, 70.92, 8277.21))
+createIslandButton("Toblorone (Skeleton Island)", Vector3.new(-5103, 7, 1699))
+createIslandButton("Opozite Island (Roku)", Vector3.new(-7289, 12, -2650))
+createIslandButton("Grass Land", Vector3.new(-4350, 14, -2934))
+createIslandButton("Pidgeon Point", Vector3.new(-2190, 136, -383))
+createIslandButton("??? (Rasputin Boss)", Vector3.new(2313, 11, -766))
+createIslandButton("Bacalou's House (DF Farm)", Vector3.new(3490, 6, 527))
+createIslandButton("Super Boss Island", Vector3.new(5867, 66, -603))
+createIslandButton("Plouton", Vector3.new(6222, 13, -4664))
+createIslandButton("Fishman Island (Soon...)", Vector3.new(0, 0, 0)) -- Placeholder position
+
+local TabNPCs = Window:CreateTab("NPCs", 4483362458)
+
+local function teleportTo(position)
+    game.Players.LocalPlayer.Character:MoveTo(position)
+end
+
+local function createNPCButton(name, position)
+    return TabNPCs:CreateButton({
+        Name = name,
+        Callback = function()
+            teleportTo(position)
+        end
+    })
+end
+
+createNPCButton("Blacksmith", Vector3.new(-71, 4, -744))
+createNPCButton("Swordstyle Teacher", function() end)
+createNPCButton("BlackLeg Teacher", function() end)
+createNPCButton("Electro Teacher", function() end)
+createNPCButton("ColorsTrap Teacher", function() end)
+createNPCButton("Boxing Coach", function() end)
+createNPCButton("Waterflow Teacher", function() end)
+createNPCButton("Sorcerer Teacher", function() end)
+createNPCButton("Material Seller (Plouton)", function() end)
+createNPCButton("Material Seller (Sky)", function() end)
+createNPCButton("Material Seller (Toblorone)", function() end)
+createNPCButton("Doctor Spec", function() end)
+createNPCButton("Cook Spec", function() end)
+createNPCButton("Team Change NPC", function() end)
+createNPCButton("Haki NPC", function() end)
+
+local TabMisc = Window:CreateTab("Misc", 4483362458)
