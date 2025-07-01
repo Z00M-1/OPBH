@@ -34,47 +34,67 @@ local Window = Rayfield:CreateWindow({
 
 local Tab = Window:CreateTab("Main", 4483362458)
 
-local Players = game:GetService("Players")
-local player = Players.LocalPlayer
-local backpack = player:WaitForChild("Backpack")
-
--- Function to get all tool names in the player's backpack
-local function getToolNames()
-    local tools = {}
-    for _, item in pairs(backpack:GetChildren()) do
-        if item:IsA("Tool") then
-            table.insert(tools, item.Name)
-        end
-    end
-    return tools
-end
-
--- Create the dropdown with dynamic tool names
 local Dropdown = Tab:CreateDropdown({
-    Name = "Select a Tool",
-    Options = getToolNames(), -- dynamically filled list of tools
-    CurrentOption = {}, -- Can be left empty unless you want to preselect
+    Name = "Tool Selector",
+    Options = {}, -- Initially empty, will be populated below
+    CurrentOption = {}, 
     MultipleOptions = false,
     Flag = "ToolDropdown",
+    
+    -- Function to get player's tools
+    GetTools = function(player)
+        local tools = {}
+        if player and player:FindFirstChildOfClass("Backpack") then
+            for _, tool in ipairs(player:FindFirstChildOfClass("Backpack"):GetChildren()) do
+                if tool:IsA("Tool") then
+                    table.insert(tools, tool.Name)
+                end
+            end
+        end
+        return tools
+    end,
+    
+    -- Initialize and update dropdown
+    Refresh = function(self)
+        local playerTools = self:GetTools(game:GetService("Players").LocalPlayer)
+        self.Options = playerTools
+        
+        -- If current selection is no longer valid, clear it
+        if #self.CurrentOption > 0 and not table.find(playerTools, self.CurrentOption[1]) then
+            self.CurrentOption = {}
+        end
+        
+        -- Update the dropdown GUI
+        if self.Instance then
+            self.Instance:Refresh(self.Options, self.CurrentOption)
+        end
+    end,
+    
     Callback = function(Options)
-        print("Selected Tool:", Options[1])
-        -- You can also handle equipping the tool or any other logic here
+        print("Selected tool:", Options[1] or "None")
+        -- Your callback logic here
     end,
 })
 
--- Optional: Refresh the dropdown if inventory changes
-backpack.ChildAdded:Connect(function(child)
-    if child:IsA("Tool") then
-        Dropdown:Refresh(getToolNames(), true) -- true to keep current selection
-    end
+-- Initial refresh
+Dropdown:Refresh()
+
+-- Create a listener to update dropdown when tools change
+game:GetService("Players").LocalPlayer:GetPropertyChangedSignal("Backpack"):Connect(function()
+    Dropdown:Refresh()
 end)
 
-backpack.ChildRemoved:Connect(function(child)
-    if child:IsA("Tool") then
-        Dropdown:Refresh(getToolNames(), true)
-    end
-end)
+local backpack = game:GetService("Players").LocalPlayer:FindFirstChildOfClass("Backpack")
+if backpack then
+    backpack.ChildAdded:Connect(function()
+        Dropdown:Refresh()
+    end)
+    backpack.ChildRemoved:Connect(function()
+        Dropdown:Refresh()
+    end)
+end
 
+local Tab = Window:CreateTab("Player", 4483362458)
 
 local WalkSpeedSlider = Tab:CreateSlider({
     Name = "WalkSpeed",
