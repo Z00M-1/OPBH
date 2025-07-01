@@ -34,142 +34,47 @@ local Window = Rayfield:CreateWindow({
 
 local Tab = Window:CreateTab("Main", 4483362458)
 
--- Auto Tool Activator
--- LocalScript that runs in StarterPlayerScripts or PlayerScripts
-
 local Players = game:GetService("Players")
-local RunService = game:GetService("RunService")
-
 local player = Players.LocalPlayer
-local character = player.Character or player.CharacterAdded:Wait()
 local backpack = player:WaitForChild("Backpack")
 
--- Configuration - customize these values
-local TOOL_NAME = "Candy Cane"  -- Name of tool to look for in the backpack
-local CLICK_INTERVAL = 0.1  -- Seconds between tool activations
-local VERBOSE = true       -- Print debug messages in output
-
-local toolFound = false
-local currentTool = nil
-local clickConnection = nil
-local isActive = false  -- Track whether the tool activator is active
-
--- Function to detect and equip the target tool
-local function findAndEquipTool()
-    -- Clear current tool if it exists
-    if currentTool then
-        currentTool = nil
-    end
-    
-    -- Search backpack for the tool
-    for _, item in ipairs(backpack:GetChildren()) do
-        if item:IsA("Tool") and item.Name == TOOL_NAME then
-            currentTool = item
-            if VERBOSE then print("Found tool:", TOOL_NAME) end
-            
-            -- Wait for character if needed before equipping
-            if not character then
-                character = player.Character or player.CharacterAdded:Wait()
-            end
-            
-            -- Equip the tool if not already equipped
-            if character:FindFirstChild("Humanoid") then
-                local humanoid = character:FindFirstChild("Humanoid")
-                if humanoid:FindFirstChildOfClass("Tool") ~= currentTool then
-                    humanoid:EquipTool(currentTool)
-                    if VERBOSE then print("Equipped tool:", TOOL_NAME) end
-                end
-            end
-            
-            return true
+-- Function to get all tool names in the player's backpack
+local function getToolNames()
+    local tools = {}
+    for _, item in pairs(backpack:GetChildren()) do
+        if item:IsA("Tool") then
+            table.insert(tools, item.Name)
         end
     end
-    
-    if VERBOSE then print("Tool not found:", TOOL_NAME) end
-    return false
+    return tools
 end
 
--- Function to simulate clicking the tool
-local function activateTool()
-    if currentTool and currentTool:FindFirstChild("Activated") then
-        -- Run activation events safely
-        local activatedEvent = currentTool:FindFirstChild("Activated")
-        if activatedEvent then
-            -- Create new parameter table to simulate player click
-            local clickData = {
-                ClickX = 0,
-                ClickY = 0,
-                Target = nil,
-                HitPosition = Vector3.new(0, 0, 0),
-                Normal = Vector3.new(0, 1, 0),
-                Delta = Vector3.new(0, 0, 0),
-                Origin = Vector3.new(0, 0, 0)
-            }
-            
-            activatedEvent:Fire(clickData)
-            if VERBOSE then print("Activated tool:", currentTool.Name) end
-        end
-    end
-end
+-- Create the dropdown with dynamic tool names
+local Dropdown = Tab:CreateDropdown({
+    Name = "Select a Tool",
+    Options = getToolNames(), -- dynamically filled list of tools
+    CurrentOption = {}, -- Can be left empty unless you want to preselect
+    MultipleOptions = false,
+    Flag = "ToolDropdown",
+    Callback = function(Options)
+        print("Selected Tool:", Options[1])
+        -- You can also handle equipping the tool or any other logic here
+    end,
+})
 
--- Main loop to handle tool detection and activation
-local function mainLoop()
-    -- Stop any existing click loop
-    if clickConnection then
-        clickConnection:Disconnect()
-        clickConnection = nil
-    end
-    
-    -- Check if we have the tool equipped
-    local hasTool = findAndEquipTool()
-    
-    if hasTool and isActive then
-        -- Start periodic activation if we have the tool
-        clickConnection = RunService.Heartbeat:Connect(function(dt)
-            activateTool()
-        end)
-    end
-end
-
--- Set up event listeners for changes
-local backpackConnection = backpack.ChildAdded:Connect(function(child)
-    if child:IsA("Tool") and child.Name == TOOL_NAME then
-        mainLoop()
+-- Optional: Refresh the dropdown if inventory changes
+backpack.ChildAdded:Connect(function(child)
+    if child:IsA("Tool") then
+        Dropdown:Refresh(getToolNames(), true) -- true to keep current selection
     end
 end)
 
 backpack.ChildRemoved:Connect(function(child)
-    if child == currentTool then
-        mainLoop() -- Retry if our tool was removed
+    if child:IsA("Tool") then
+        Dropdown:Refresh(getToolNames(), true)
     end
 end)
 
-player.CharacterAdded:Connect(function(newChar)
-    character = newChar
-    mainLoop() -- Reset when character changes
-end)
-
--- Toggle functionality
-local Toggle = Tab:CreateToggle({
-    Name = "Auto Tool Activator",
-    CurrentValue = false,
-    Flag = "Toggle1", -- A flag is the identifier for the configuration file
-    Callback = function(Value)
-        isActive = Value  -- Update the active state based on the toggle
-        if isActive then
-            mainLoop()  -- Start the main loop if activated
-        else
-            if clickConnection then
-                clickConnection:Disconnect()  -- Stop the activation loop
-                clickConnection = nil
-            end
-            if VERBOSE then print("Auto Tool Activator deactivated.") end
-        end
-    end,
-})
-
--- Initial setup
-mainLoop()
 
 local WalkSpeedSlider = Tab:CreateSlider({
     Name = "WalkSpeed",
