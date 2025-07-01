@@ -66,12 +66,19 @@ local WalkSpeedSlider = Tab:CreateSlider({
 
 local TabQuests = Window:CreateTab("Quests", 4483362458)
 
-local function createQuestButton(name, callback)
-    return TabQuests:CreateButton({
+local function teleportTo(position)
+    game.Players.LocalPlayer.Character:MoveTo(position)
+end
+
+local function createQuestButton(name, position)
+    return TabQuest:CreateButton({
         Name = name,
-        Callback = callback
+        Callback = function()
+            teleportTo(position)
+        end
     })
 end
+
 
 createQuestButton("Bandit", Vector3.new(-1912, 191, 3279))
 createQuestButton("Snow Bandit", Vector3.new(370, 27, -2489))
@@ -80,7 +87,7 @@ createQuestButton("Toxic Zombie", Vector3.new(3327, 4, 5840))
 createQuestButton("Skeleton", Vector3.new(-5231, 9, 1597))
 createQuestButton("Sky Warriors", Vector3.new(-3685, 2281, 7798))
 createQuestButton("Obsidmon", Vector3.new(-3647, 20, -1177))
-createQuestButton("Suney", Vector3.new(-3058, 2553, 8604))
+createQuestButton("Suney", Vector3.new(-3061, 2553, 8609))
 
 local TabIslands = Window:CreateTab("Islands", 4483362458)
 
