@@ -24,125 +24,69 @@ local Window = Rayfield:CreateWindow({
    KeySlocal PlayerService = game:GetService("Players")
 local LocalPlayer = PlayerService.LocalPlayer
 
-local function SafeGetTools()
-    local tools = {}
-    
-    -- Wait for player and backpack to exist
-    if not LocalPlayer then
-        return {"Player not found"}
-    end
-    
-    local Backpack = LocalPlayer:WaitForChild("Backpack", 5) -- 5 second timeout
-    
-    if not Backpack then
-        return {"Backpack not found"}
-    end
-    
-    -- Get current tools
-    for _, item in ipairs(Backpack:GetChildren()) do
-        if item:IsA("Tool") then
-            table.insert(tools, item.Name)
-        end
-    end
-    
-    if #tools == 0 then
-        return {"No tools available"}
-    end
-    
-    return tools
-end
-
-local function CreateInventoryUI(tab)
-    local currentOptions = SafeGetTools()
-    
-    -- Create dropdown
-    local Dropdown = tab:CreateDropdown({
-        Name = "Inventory Tools",
-        Options = currentOptions,
-        CurrentOption = {currentOptions[1]},
-        MultipleOptions = false,
-        Flag = "InventoryDropdown",
-        Callback = function(Options)
-            print("Selected tool:", Options[1])
-            -- Your callback logic here
-        end,
-    })
-
-    -- Create refresh button
-    local RefreshButton = tab:CreateButton({
-        Name = "Refresh Inventory",
-        Callback = function()
-            local newOptions = SafeGetTools()
-            Dropdown:UpdateOptions(newOptions)
-            Dropdown:SetCurrentOption({newOptions[1] or "No tools"})
-        end
-    })
-
-    -- Safe event connections
-    local function ConnectToolEvents()
-        local Backpack = LocalPlayer:FindFirstChild("Backpack")
-        if not Backpack then return end
-        
-        local toolAddedConn
-        local toolRemovedConn
-
-        local function cleanup()
-            if toolAddedConn then
-                toolAddedConn:Disconnect()
-                toolAddedConn = nil
-            end
-            if toolRemovedConn then
-                toolRemovedConn:Disconnect()
-                toolRemovedConn = nil
-            end
-        end
-
-        toolAddedConn = Backpack.ChildAdded:Connect(function(child)
-            if child:IsA("Tool") then
-                task.wait(0.1) -- Small delay to ensure tool is fully loaded
-                Dropdown:UpdateOptions(SafeGetTools())
-            end
-        end)
-
-        toolRemovedConn = Backpack.ChildRemoved:Connect(function(child)
-            if child:IsA("Tool") then
-                Dropdown:UpdateOptions(SafeGetTools())
-            end
-        end)
-
-        -- Cleanup when UI is destroyed
-        return cleanup
-    end
-
-    -- Initialize event connections
-    local cleanup = ConnectToolEvents()
-
-    -- Return cleanup function
-    return function()
-        if cleanup then
-            cleanup()
-        end
-    end
-end
-
--- Usage:
-local cleanupInventoryUI = CreateInventoryUI(Tab)
-
--- Later if you need to destroy this UI:
--- cleanupInventoryUI()ettings = {
-      Title = "Untitled",
-      Subtitle = "Key System",
-      Note = "No method of obtaining the key is provided",
-      FileName = "Key",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"Hello"}
-   }
-})
 
 local Tab = Window:CreateTab("Main", 4483362458)
 
+local Dropdown = Tab:CreateDropdown({
+    Name = "Dropdown Example",
+    Options = {"Option 1","Option 2"},
+    CurrentOption = {"Option 1"},
+    MultipleOptions = false,
+    Flag = "Dropdown1",
+    Callback = function(Options)
+        -- The function that takes place when the selected option is changed
+        -- The variable (Options) is a table of strings for the current selected options
+    end,
+})
 
+-- Function to detect user's tools and update dropdown
+local function UpdateToolList()
+    local toolNames = {}
+    
+    -- Get player's backpack and character tools
+    local player = game.Players.LocalPlayer
+    local backpackTools = player:FindFirstChild("Backpack") or player.Backpack
+    local characterTools = player.Character and player.Character:FindFirstChildOfClass("Tool") and {player.Character:FindFirstChildOfClass("Tool")} or {}
+    
+    -- Collect tool names
+    for i, tool in ipairs(backpackTools:GetChildren()) do
+        if tool:IsA("Tool") then
+            table.insert(toolNames, tool.Name)
+        end
+    end
+    
+    for i, tool in ipairs(characterTools) do
+        table.insert(toolNames, tool.Name)
+    end
+    
+    -- Remove duplicates
+    local seen = {}
+    local uniqueTools = {}
+    for i, toolName in ipairs(toolNames) do
+        if not seen[toolName] then
+            table.insert(uniqueTools, toolName)
+            seen[toolName] = true
+        end
+    end
+    
+    -- Update dropdown if tools were found
+    if #uniqueTools > 0 then
+        Dropdown:Refresh(uniqueTools, false)
+    else
+        Dropdown:Refresh({"No tools found"}, false)
+    end
+end
+
+-- Add refresh button
+local RefreshButton = Tab:CreateButton({
+    Name = "Refresh Tools",
+    Callback = function()
+        UpdateToolList()
+    end,
+})
+
+-- Initial update
+UpdateToolList()
 
 local Tab = Window:CreateTab("Player", 4483362458)
 
