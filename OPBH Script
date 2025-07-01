@@ -74,7 +74,7 @@ local function createQuestButton(name, callback)
 end
 
 createQuestButton("Bandit", Vector3.new(-1912, 191, 3279))
-createQuestButton("Snow Bandit", function(370, 27, -2489))
+createQuestButton("Snow Bandit", Vector3.new(370, 27, -2489))
 createQuestButton("Savages", Vector3.new(-2961, 14, -6112))
 createQuestButton("Toxic Zombie", Vector3.new(3327, 4, 5840))
 createQuestButton("Skeleton", Vector3.new(-5231, 9, 1597))
@@ -134,7 +134,7 @@ end
 createNPCButton("Blacksmith", Vector3.new(-71, 4, -744))
 createNPCButton("Swordstyle Teacher", Vector3.new(973, 28, -3475))
 createNPCButton("BlackLeg Teacher", Vector3.new(-5657, 71, 8648))
-createNPCButton("Electro Teacher", function() end)
+createNPCButton("Electro Teacher", Vector3.new(-451.32, 50.80, 5147.60))
 createNPCButton("ColorsTrap Teacher", Vector3.new(1425, 17, 2431))
 createNPCButton("Boxing Coach", Vector3.new(-6135, 101, 1534))
 createNPCButton("Waterflow Teacher", Vector3.new(6840, 113, -6239))
