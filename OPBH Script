@@ -79,7 +79,6 @@ local function createQuestButton(name, position)
     })
 end
 
-
 createQuestButton("Bandit", Vector3.new(-1912, 191, 3279))
 createQuestButton("Snow Bandit", Vector3.new(370, 27, -2489))
 createQuestButton("Savages", Vector3.new(-2961, 14, -6112))
