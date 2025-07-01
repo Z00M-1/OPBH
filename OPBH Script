@@ -71,7 +71,7 @@ local function teleportTo(position)
 end
 
 local function createQuestButton(name, position)
-    return TabQuest:CreateButton({
+    return TabQuests:CreateButton({
         Name = name,
         Callback = function()
             teleportTo(position)
