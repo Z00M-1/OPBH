@@ -34,59 +34,6 @@ local Window = Rayfield:CreateWindow({
 
 local Tab = Window:CreateTab("Main", 4483362458)
 
-local Dropdown = Tab:CreateDropdown({
-    Name = "Current Tool",
-    Options = {}, -- Initially empty, will be populated
-    CurrentOption = {}, -- Initially empty
-    MultipleOptions = false,
-    Flag = "CurrentToolDropdown",
-    Callback = function(SelectedTool)
-        -- Function that runs when the selected tool changes
-        print("Selected tool:", SelectedTool[1])
-    end,
-})
-
--- Function to update dropdown options
-local function UpdateToolDropdown()
-    local player = game.Players.LocalPlayer
-    local backpack = player:FindFirstChild("Backpack") or player:WaitForChild("Backpack")
-    local currentTool = player.Character and player.Character:FindFirstChildOfClass("Tool")
-    
-    -- Get all tools in backpack
-    local toolOptions = {}
-    local toolNames = {}
-    
-    for _, tool in ipairs(backpack:GetChildren()) do
-        if tool:IsA("Tool") then
-            table.insert(toolOptions, tool.Name)
-            table.insert(toolNames, tool.Name)
-        end
-    end
-    
-    -- Update dropdown options
-    Dropdown:UpdateOptions(toolOptions)
-    
-    -- Set current selection
-    if currentTool and table.find(toolNames, currentTool.Name) then
-        Dropdown:SetSelection({currentTool.Name})
-    end
-end
-
--- Initial update
-UpdateToolDropdown()
-
--- Track tool changes
-game:GetService("RunService").Heartbeat:Connect(function()
-    UpdateToolDropdown()
-end)
-
--- Track when character changes (respawning, etc.)
-game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
-    character:WaitForChild("Humanoid")
-    character.Humanoid:GetPropertyChangedSignal("EquippedTool"):Connect(UpdateToolDropdown)
-    UpdateToolDropdown()
-end)
-
 local Tab = Window:CreateTab("Player", 4483362458)
 
 local WalkSpeedSlider = Tab:CreateSlider({
