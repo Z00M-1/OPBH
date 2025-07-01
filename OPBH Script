@@ -35,64 +35,57 @@ local Window = Rayfield:CreateWindow({
 local Tab = Window:CreateTab("Main", 4483362458)
 
 local Dropdown = Tab:CreateDropdown({
-    Name = "Dropdown Example",
-    Options = {"Option 1","Option 2"},
-    CurrentOption = {"Option 1"},
+    Name = "Current Tool",
+    Options = {}, -- Initially empty, will be populated
+    CurrentOption = {}, -- Initially empty
     MultipleOptions = false,
-    Flag = "Dropdown1",
-    Callback = function(Options)
-            local toolNames = {}
-    
-    -- Get player's backpack and character tools
+    Flag = "CurrentToolDropdown",
+    Callback = function(SelectedTool)
+        -- Function that runs when the selected tool changes
+        print("Selected tool:", SelectedTool[1])
+    end,
+})
+
+-- Function to update dropdown options
+local function UpdateToolDropdown()
     local player = game.Players.LocalPlayer
-    local backpackTools = player:FindFirstChild("Backpack") or player.Backpack
-    local characterTools = player.Character and player.Character:FindFirstChildOfClass("Tool") and {player.Character:FindFirstChildOfClass("Tool")} or {}
+    local backpack = player:FindFirstChild("Backpack") or player:WaitForChild("Backpack")
+    local currentTool = player.Character and player.Character:FindFirstChildOfClass("Tool")
     
-    -- Collect tool names
-    for i, tool in ipairs(backpackTools:GetChildren()) do
+    -- Get all tools in backpack
+    local toolOptions = {}
+    local toolNames = {}
+    
+    for _, tool in ipairs(backpack:GetChildren()) do
         if tool:IsA("Tool") then
+            table.insert(toolOptions, tool.Name)
             table.insert(toolNames, tool.Name)
         end
     end
     
-    for i, tool in ipairs(characterTools) do
-        table.insert(toolNames, tool.Name)
-    end
+    -- Update dropdown options
+    Dropdown:UpdateOptions(toolOptions)
     
-    -- Remove duplicates
-    local seen = {}
-    local uniqueTools = {}
-    for i, toolName in ipairs(toolNames) do
-        if not seen[toolName] then
-            table.insert(uniqueTools, toolName)
-            seen[toolName] = true
-        end
-    end
-    
-    -- Update dropdown if tools were found
-    if #uniqueTools > 0 then
-        Dropdown:Refresh(uniqueTools, false)
-    else
-        Dropdown:Refresh({"No tools found"}, false)
+    -- Set current selection
+    if currentTool and table.find(toolNames, currentTool.Name) then
+        Dropdown:SetSelection({currentTool.Name})
     end
 end
 
--- Add refresh button
-local RefreshButton = Tab:CreateButton({
-    Name = "Refresh Tools",
-    Callback = function()
-        UpdateToolList()
-    end,
-})
-
 -- Initial update
-UpdateToolList()
-    end,
-})
+UpdateToolDropdown()
 
--- Function to detect user's tools and update dropdown
-local function UpdateToolList()
+-- Track tool changes
+game:GetService("RunService").Heartbeat:Connect(function()
+    UpdateToolDropdown()
+end)
 
+-- Track when character changes (respawning, etc.)
+game.Players.LocalPlayer.CharacterAdded:Connect(function(character)
+    character:WaitForChild("Humanoid")
+    character.Humanoid:GetPropertyChangedSignal("EquippedTool"):Connect(UpdateToolDropdown)
+    UpdateToolDropdown()
+end)
 
 local Tab = Window:CreateTab("Player", 4483362458)
 
