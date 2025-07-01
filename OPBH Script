@@ -41,14 +41,7 @@ local Dropdown = Tab:CreateDropdown({
     MultipleOptions = false,
     Flag = "Dropdown1",
     Callback = function(Options)
-        -- The function that takes place when the selected option is changed
-        -- The variable (Options) is a table of strings for the current selected options
-    end,
-})
-
--- Function to detect user's tools and update dropdown
-local function UpdateToolList()
-    local toolNames = {}
+            local toolNames = {}
     
     -- Get player's backpack and character tools
     local player = game.Players.LocalPlayer
@@ -94,6 +87,12 @@ local RefreshButton = Tab:CreateButton({
 
 -- Initial update
 UpdateToolList()
+    end,
+})
+
+-- Function to detect user's tools and update dropdown
+local function UpdateToolList()
+
 
 local Tab = Window:CreateTab("Player", 4483362458)
 
