@@ -32,6 +32,8 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
+local Tab = Window:CreateTab("Main (Soon...)", 4483362458)
+
 local Tab = Window:CreateTab("Player", 4483362458)
 
 local WalkSpeedSlider = Tab:CreateSlider({
@@ -71,14 +73,13 @@ local function teleportTo(position)
 end
 
 local function createQuestButton(name, position)
-    return TabQuest:CreateButton({
+    return TabQuests:CreateButton({
         Name = name,
         Callback = function()
             teleportTo(position)
         end
     })
 end
-
 
 createQuestButton("Bandit", Vector3.new(-1912, 191, 3279))
 createQuestButton("Snow Bandit", Vector3.new(370, 27, -2489))
@@ -147,7 +148,7 @@ createNPCButton("Boxing Coach", Vector3.new(-6135, 101, 1534))
 createNPCButton("Waterflow Teacher", Vector3.new(6840, 113, -6239))
 createNPCButton("Sorcerer Teacher", Vector3.new(278, 128, -2911))
 createNPCButton("Material Seller (Plouton)", Vector3.new(5787, 33, -5656))
-createNPCButton("Material Seller (Sky)", Vector3.new(-3685, 2281, 7798))
+createNPCButton("Material Seller (Sky)", Vector3.new(-3752, 2281, 7734))
 createNPCButton("Material Seller (Toblorone)", function() end)
 createNPCButton("Doctor Spec", function() end)
 createNPCButton("Cook Spec", Vector3.new(6378, 33, -5648))
