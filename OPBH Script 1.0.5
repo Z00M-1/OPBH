@@ -32,8 +32,107 @@ local Window = Rayfield:CreateWindow({
    }
 })
 
-local Tab = Window:CreateTab("Main (Soon...)", 4483362458)
+-- Create main tab
+local MainTab = Window:CreateTab("Auto Features", 4483362458)
 
+-- Collection states
+local collectingBRocks = false
+local collectingOrange = false
+local collectingApple = false
+
+-- Configuration for Collectors
+local COLLECTION_DISTANCE = 15  -- Distance to collect items (studs)
+local COLLECTION_COOLDOWN = 0.3  -- Time between collection checks (seconds)
+local ORANGE_NAME = "Orange"     -- Name of the Orange parts (case sensitive)
+local APPLE_NAME = "Apple"        -- Name of the Apple parts (case sensitive)
+
+-- Function to collect items
+local function collectNearbyItems(itemName, collectingFlag)
+    while collectingFlag do
+        task.wait(COLLECTION_COOLDOWN) -- Prevents infinite loops
+        
+        local player = game.Players.LocalPlayer
+        if not player or not player.Character then continue end
+        
+        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
+        if not rootPart then continue end
+        
+        local playerPos = rootPart.Position
+        
+        -- Find and collect all nearby items
+        for _, item in pairs(workspace:GetDescendants()) do
+            if item.Name == itemName and item:IsA("BasePart") then
+                local clickDetector = item:FindFirstChildOfClass("ClickDetector")
+                
+                -- Check distance and collect
+                if clickDetector and (playerPos - item.Position).Magnitude <= COLLECTION_DISTANCE then
+                    -- Simulate clicking the detector
+                    fireclickdetector(clickDetector)
+                end
+            end
+        end
+    end
+end
+
+-- BRock Collector Function
+local function collectNearbyBRocks()
+    collectNearbyItems("BRock", collectingBRocks)
+end
+
+-- Orange Collector Function
+local function collectNearbyOrange()
+    collectNearbyItems(ORANGE_NAME, collectingOrange)
+end
+
+-- Apple Collector Function
+local function collectNearbyApple()
+    collectNearbyItems(APPLE_NAME, collectingApple)
+end
+
+-- Create Toggles
+MainTab:CreateToggle({
+   Name = "Auto Collect BRocks",
+   CurrentValue = false,
+   Flag = "BRockToggle",
+   Callback = function(Value)
+       collectingBRocks = Value
+       if Value then
+           coroutine.wrap(collectNearbyBRocks)()
+       else
+           collectingBRocks = false
+       end
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Auto Collect Orange",
+   CurrentValue = false,
+   Flag = "OrangeToggle",
+   Callback = function(Value)
+       collectingOrange = Value
+       if Value then
+           coroutine.wrap(collectNearbyOrange)()
+       else
+           collectingOrange = false
+       end
+   end,
+})
+
+MainTab:CreateToggle({
+   Name = "Auto Collect Apples",
+   CurrentValue = false,
+   Flag = "AppleToggle",
+   Callback = function(Value)
+       collectingApple = Value
+       if Value then
+           coroutine.wrap(collectNearbyApple)()
+       else
+           collectingApple = false
+       end
+   end,
+})
+
+-- Player Tab
 local Tab = Window:CreateTab("Player", 4483362458)
 
 local WalkSpeedSlider = Tab:CreateSlider({
@@ -48,7 +147,7 @@ local WalkSpeedSlider = Tab:CreateSlider({
     end,
 })
 
- JumpHeightSlider = Tab:CreateSlider({
+local JumpHeightSlider = Tab:CreateSlider({
    Name = "Jump Height",
    Range = {50, 250},
    Increment = 10,
@@ -66,6 +165,7 @@ local WalkSpeedSlider = Tab:CreateSlider({
    end,
 })
 
+-- Quests Tab
 local TabQuests = Window:CreateTab("Quests", 4483362458)
 
 local function teleportTo(position)
@@ -91,6 +191,7 @@ createQuestButton("Obsidmon", Vector3.new(-3647, 20, -1177))
 createQuestButton("Suney", Vector3.new(-3061, 2553, 8609))
 createQuestButton("Haki Quest", Vector3.new(1644, 6, 775))
 
+-- Islands Tab
 local TabIslands = Window:CreateTab("Islands", 4483362458)
 
 local function teleportTo(position)
@@ -125,6 +226,7 @@ createIslandButton("Super Boss Island", Vector3.new(5867, 66, -603))
 createIslandButton("Plouton", Vector3.new(6222, 13, -4664))
 createIslandButton("Volcano Island", Vector3.new(-3547, 20, -1069)) -- Placeholder position
 
+-- NPCs Tab
 local TabNPCs = Window:CreateTab("NPCs", 4483362458)
 
 local function teleportTo(position)
@@ -156,4 +258,5 @@ createNPCButton("Cook Spec", Vector3.new(6378, 33, -5648))
 createNPCButton("Team Change NPC", Vector3.new(-3591, 29, -1244))
 createNPCButton("Priest", Vector3.new(-2136, 2626, 9544))
 
+-- Misc Tab
 local TabMisc = Window:CreateTab("Misc", 4483362458)
