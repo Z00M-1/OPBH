@@ -260,3 +260,10 @@ createNPCButton("Priest", Vector3.new(-2136, 2626, 9544))
 
 -- Misc Tab
 local TabMisc = Window:CreateTab("Misc", 4483362458)
+
+local Button = Tab:CreateButton({
+   Name = "Button Example",
+   Callback = function()
+   Rayfield:Destroy()-- The function that takes place when the button is pressed
+   end,
+})
