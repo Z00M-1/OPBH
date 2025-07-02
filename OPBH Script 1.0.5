@@ -91,7 +91,7 @@ end
 
 -- Create Toggles
 MainTab:CreateToggle({
-   Name = "Auto Collect BRocks",
+   Name = "AutoClick Rocks",
    CurrentValue = false,
    Flag = "BRockToggle",
    Callback = function(Value)
@@ -258,13 +258,15 @@ createNPCButton("Cook Spec", Vector3.new(6378, 33, -5648))
 createNPCButton("Team Change NPC", Vector3.new(-3591, 29, -1244))
 createNPCButton("Priest", Vector3.new(-2136, 2626, 9544))
 
--- Misc Tab
+-- Misc Tab (complete version)
 local TabMisc = Window:CreateTab("Misc", 4483362458)
 
-local Button = Tab:CreateButton({
-   Name = "Destroy GUI",
-   Callback = function(Rayfield)
-   Rayfield:Destroy() -- The function that takes place when the button is pressed
-   end,
+-- Create Destroy Button (make sure this is inside the TabMisc context)
+local DestroyButton = TabMisc:CreateButton({
+    Name = "DESTROY UI",
+    Callback = function()
+        Rayfield:Destroy()
+    end,
 })
- 
+
+-- Make sure no other code is overwriting TabMisc after this
