@@ -101,7 +101,7 @@ AutoKillNPCTab:CreateSlider({ Name="Offset Z", Range={-10,10}, Increment=0.5, Cu
 AutoKillNPCTab:CreateDropdown({ Name="Tool to Equip", Options={"Combat","BlackLeg","SkyLance","CandyCane","SeismicGloves","3SS","SorcererCombat","ArkumBow","ObsidianTremor","WaterCombat","1SS","2SS"}, CurrentOption="Combat", Callback=function(opt) selectedTool=opt end })
 
 local function getDirectionOffset()
-    if attackDirection=="Behind" then return Vector3.new(0,0,10) elseif attackDirection=="Above" then return Vector3.new(0,3,0) elseif attackDirection=="Below" then return Vector3.new(0,-3,0) else return Vector3.new(0,0,10) end
+    if attackDirection=="Behind" then return Vector3.new(0,0,-10) elseif attackDirection=="Above" then return Vector3.new(0,3,0) elseif attackDirection=="Below" then return Vector3.new(0,-3,0) else return Vector3.new(0,0,-10) end
 end
 
 local function equipTool() local p=game.Players.LocalPlayer local t=p.Backpack:FindFirstChild(selectedTool) if t then t.Parent=p.Character end end
