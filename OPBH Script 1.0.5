@@ -91,7 +91,7 @@ MainTab:CreateToggle({ Name="Auto Jump", CurrentValue=false, Callback=function(v
 -- ⚔️ AutoKillNPC Tab
 ----------------------------------------------------
 local AutoKillNPCTab = Window:CreateTab("AutoKillNPC", 4483362458)
-local selectedTool, attackDirection, offsetX, offsetY, offsetZ = "Combat", "Behind", 0, 0, -3
+local selectedTool, attackDirection, offsetX, offsetY, offsetZ = "Combat", "Behind", 0, 0, 3
 local VirtualUser = game:GetService("VirtualUser")
 
 AutoKillNPCTab:CreateDropdown({ Name="Attack Direction", Options={"Behind","Above","Below"}, CurrentOption="Behind", Callback=function(opt) attackDirection=opt end })
