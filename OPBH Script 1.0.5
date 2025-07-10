@@ -1,272 +1,226 @@
-local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+local success, Rayfield = pcall(function()
+    return loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
+end)
+if not success then 
+    warn("Failed to load Rayfield: " .. tostring(Rayfield))
+    return 
+end
 
 local Window = Rayfield:CreateWindow({
-   Name = "Z00M-Hub",
-   Icon = 0,
-   LoadingTitle = "OPBH Script",
-   LoadingSubtitle = "by Z00M",
-   ShowText = "Script",
-   Theme = "Default",
-   ToggleUIKeybind = "K",
-   DisableRayfieldPrompts = false,
-   DisableBuildWarnings = false,
-   ConfigurationSaving = {
-      Enabled = true,
-      FolderName = "OPBH",
-      FileName = "Z00M Hub"
-   },
-   Discord = {
-      Enabled = false,
-      Invite = "noinvitelink",
-      RememberJoins = true
-   },
-   KeySystem = false,
-   KeySettings = {
-      Title = "Untitled",
-      Subtitle = "Key System",
-      Note = "No method of obtaining the key is provided",
-      FileName = "Key",
-      SaveKey = true,
-      GrabKeyFromSite = false,
-      Key = {"Hello"}
-   }
+    Name = "Z00M-Hub",
+    Theme = "Default",
+    ToggleUIKeybind = "K"
 })
 
--- Create main tab
+----------------------------------------------------
+-- 📦 MainTab: Auto Features
+----------------------------------------------------
 local MainTab = Window:CreateTab("Auto Features", 4483362458)
+local collectingBRocks, collectingOrange, collectingApple, autoJumping = false, false, false, false
+local COLLECTION_DISTANCE, TELEPORT_COOLDOWN = 15, 1
+local ORANGE_NAME, APPLE_NAME, BRock_NAME = "Orange", "Apple", "BRock"
 
--- Collection states
-local collectingBRocks = false
-local collectingOrange = false
-local collectingApple = false
+local ROCK_POSITIONS = {
+    Vector3.new(1562, 45, 2105), Vector3.new(2273, 17, -776), Vector3.new(256, 46, 216),
+    Vector3.new(-1636, 207, 1778), Vector3.new(-1371, 204, 2023), Vector3.new(1332, 20, 2087)
+}
 
--- Configuration for Collectors
-local COLLECTION_DISTANCE = 15  -- Distance to collect items (studs)
-local COLLECTION_COOLDOWN = 0.3  -- Time between collection checks (seconds)
-local ORANGE_NAME = "Orange"     -- Name of the Orange parts (case sensitive)
-local APPLE_NAME = "Apple"        -- Name of the Apple parts (case sensitive)
+local function safeTeleport(pos)
+    local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+    if hrp then hrp.CFrame = CFrame.new(pos + Vector3.new(0,3,0)) task.wait(TELEPORT_COOLDOWN) end
+end
 
--- Function to collect items
-local function collectNearbyItems(itemName, collectingFlag)
-    while collectingFlag do
-        task.wait(COLLECTION_COOLDOWN) -- Prevents infinite loops
-        
-        local player = game.Players.LocalPlayer
-        if not player or not player.Character then continue end
-        
-        local rootPart = player.Character:FindFirstChild("HumanoidRootPart")
-        if not rootPart then continue end
-        
-        local playerPos = rootPart.Position
-        
-        -- Find and collect all nearby items
-        for _, item in pairs(workspace:GetDescendants()) do
-            if item.Name == itemName and item:IsA("BasePart") then
-                local clickDetector = item:FindFirstChildOfClass("ClickDetector")
-                
-                -- Check distance and collect
-                if clickDetector and (playerPos - item.Position).Magnitude <= COLLECTION_DISTANCE then
-                    -- Simulate clicking the detector
-                    fireclickdetector(clickDetector)
-                end
+local function findClickableBRocks(position)
+    local valid = {}
+    for _, item in pairs(workspace:GetDescendants()) do
+        if item.Name == BRock_NAME and item:IsA("BasePart") and item:FindFirstChildOfClass("ClickDetector") then
+            if (position - item.Position).Magnitude <= COLLECTION_DISTANCE then
+                table.insert(valid, item)
             end
         end
     end
+    return valid
 end
 
--- BRock Collector Function
-local function collectNearbyBRocks()
-    collectNearbyItems("BRock", collectingBRocks)
-end
-
--- Orange Collector Function
-local function collectNearbyOrange()
-    collectNearbyItems(ORANGE_NAME, collectingOrange)
-end
-
--- Apple Collector Function
-local function collectNearbyApple()
-    collectNearbyItems(APPLE_NAME, collectingApple)
-end
-
--- Create Toggles
-MainTab:CreateToggle({
-   Name = "AutoClick Rocks",
-   CurrentValue = false,
-   Flag = "BRockToggle",
-   Callback = function(Value)
-       collectingBRocks = Value
-       if Value then
-           coroutine.wrap(collectNearbyBRocks)()
-       else
-           collectingBRocks = false
-       end
-   end,
-})
-
-MainTab:CreateToggle({
-   Name = "Auto Collect Orange",
-   CurrentValue = false,
-   Flag = "OrangeToggle",
-   Callback = function(Value)
-       collectingOrange = Value
-       if Value then
-           coroutine.wrap(collectNearbyOrange)()
-       else
-           collectingOrange = false
-       end
-   end,
-})
-
-MainTab:CreateToggle({
-   Name = "Auto Collect Apples",
-   CurrentValue = false,
-   Flag = "AppleToggle",
-   Callback = function(Value)
-       collectingApple = Value
-       if Value then
-           coroutine.wrap(collectNearbyApple)()
-       else
-           collectingApple = false
-       end
-   end,
-})
-
--- Player Tab
-local Tab = Window:CreateTab("Player", 4483362458)
-
-local WalkSpeedSlider = Tab:CreateSlider({
-    Name = "WalkSpeed",
-    Range = {16, 300},
-    Increment = 1,
-    Suffix = "Speed",
-    CurrentValue = 16,
-    Flag = "WalkSpeedSlider",
-    Callback = function(Value)
-        game.Players.LocalPlayer.Character.Humanoid.WalkSpeed = Value
-    end,
-})
-
-local JumpHeightSlider = Tab:CreateSlider({
-   Name = "Jump Height",
-   Range = {50, 250},
-   Increment = 10,
-   Suffix = "Jump Power",
-   CurrentValue = 50,
-   Flag = "JumpHeightSlider",
-   Callback = function(Value)
-       local player = game.Players.LocalPlayer
-       if player and player.Character then
-           local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
-           if humanoid then
-               humanoid.JumpPower = Value
-           end
-       end
-   end,
-})
-
--- Quests Tab
-local TabQuests = Window:CreateTab("Quests", 4483362458)
-
-local function teleportTo(position)
-    game.Players.LocalPlayer.Character:MoveTo(position)
-end
-
-local function createQuestButton(name, position)
-    return TabQuests:CreateButton({
-        Name = name,
-        Callback = function()
-            teleportTo(position)
+local function collectBRocks()
+    while collectingBRocks do
+        local rootPart = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if rootPart then
+            local rocks = findClickableBRocks(rootPart.Position)
+            if #rocks > 0 then
+                for _, rock in ipairs(rocks) do
+                    fireclickdetector(rock:FindFirstChildOfClass("ClickDetector"))
+                end
+            else
+                safeTeleport(ROCK_POSITIONS[math.random(1,#ROCK_POSITIONS)])
+            end
         end
-    })
+        game:GetService("RunService").Heartbeat:Wait()
+    end
 end
 
-createQuestButton("Bandit", Vector3.new(-1912, 191, 3279))
-createQuestButton("Snow Bandit", Vector3.new(370, 27, -2489))
-createQuestButton("Savages", Vector3.new(-2961, 14, -6112))
-createQuestButton("Toxic Zombie", Vector3.new(3327, 4, 5840))
-createQuestButton("Skeleton", Vector3.new(-5231, 9, 1597))
-createQuestButton("Sky Warriors", Vector3.new(-3685, 2281, 7798))
-createQuestButton("Obsidmon", Vector3.new(-3647, 20, -1177))
-createQuestButton("Suney", Vector3.new(-3061, 2553, 8609))
-createQuestButton("Haki Quest", Vector3.new(1644, 6, 775))
-
--- Islands Tab
-local TabIslands = Window:CreateTab("Islands", 4483362458)
-
-local function teleportTo(position)
-    game.Players.LocalPlayer.Character:MoveTo(position)
-end
-
-local function createIslandButton(name, position)
-    return TabIslands:CreateButton({
-        Name = name,
-        Callback = function()
-            teleportTo(position)
+local function collectItems(itemName, state)
+    while state do
+        local hrp = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+        if hrp then
+            for _, item in pairs(workspace:GetDescendants()) do
+                if item.Name == itemName and item:IsA("BasePart") and (hrp.Position - item.Position).Magnitude <= COLLECTION_DISTANCE then
+                    local clicker = item:FindFirstChildOfClass("ClickDetector")
+                    if clicker then fireclickdetector(clicker) end
+                end
+            end
         end
-    })
+        task.wait()
+    end
 end
 
-createIslandButton("Teleport To Spawn", Vector3.new(-1446.97, 16.51, 1353.49))
-createIslandButton("Waterfalls", Vector3.new(289.32, 10.38, 73.82))
-createIslandButton("Snow Island", Vector3.new(224.84, 26.80, -2451.32))
-createIslandButton("Savage Island", Vector3.new(-2936.60, 13.83, -6129.01))
-createIslandButton("Sky Island", Vector3.new(-4673.35, 2157.41, 6530.80))
-createIslandButton("Great Desert", Vector3.new(1404.66, 16.01, 2172.99))
-createIslandButton("Graveyard (Zombie)", Vector3.new(3282, 4, 5913))
-createIslandButton("Neo Island", Vector3.new(-451.32, 50.80, 5147.60))
-createIslandButton("Tribal Village (Sakura)", Vector3.new(-5946.32, 70.92, 8277.21))
-createIslandButton("Toblorone (Skeleton Island)", Vector3.new(-5103, 7, 1699))
-createIslandButton("Opozite Island (Roku)", Vector3.new(-7289, 12, -2650))
-createIslandButton("Grass Land", Vector3.new(-4350, 14, -2934))
-createIslandButton("Pidgeon Point", Vector3.new(-2190, 136, -383))
-createIslandButton("??? (Rasputin Boss)", Vector3.new(2313, 11, -766))
-createIslandButton("Bacalou's House (DF Farm)", Vector3.new(3490, 6, 527))
-createIslandButton("Super Boss Island", Vector3.new(5867, 66, -603))
-createIslandButton("Plouton", Vector3.new(6222, 13, -4664))
-createIslandButton("Volcano Island", Vector3.new(-3547, 20, -1069)) -- Placeholder position
-
--- NPCs Tab
-local TabNPCs = Window:CreateTab("NPCs", 4483362458)
-
-local function teleportTo(position)
-    game.Players.LocalPlayer.Character:MoveTo(position)
+local function autoJumpRoutine()
+    while autoJumping do
+        local hum = game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid")
+        if hum then hum.Jump = true end
+        game:GetService("RunService").Heartbeat:Wait()
+    end
 end
 
-local function createNPCButton(name, position)
-    return TabNPCs:CreateButton({
-        Name = name,
-        Callback = function()
-            teleportTo(position)
+MainTab:CreateToggle({ Name="AutoClick Rocks", CurrentValue=false, Callback=function(v) collectingBRocks=v if v then coroutine.wrap(collectBRocks)() end end })
+MainTab:CreateToggle({ Name="Auto Collect Orange", CurrentValue=false, Callback=function(v) collectingOrange=v if v then coroutine.wrap(function() collectItems(ORANGE_NAME,v) end)() end end })
+MainTab:CreateToggle({ Name="Auto Collect Apples", CurrentValue=false, Callback=function(v) collectingApple=v if v then coroutine.wrap(function() collectItems(APPLE_NAME,v) end)() end end })
+MainTab:CreateToggle({ Name="Auto Jump", CurrentValue=false, Callback=function(v) autoJumping=v if v then coroutine.wrap(autoJumpRoutine)() end end })
+
+----------------------------------------------------
+-- ⚔️ AutoKillNPC Tab
+----------------------------------------------------
+local AutoKillNPCTab = Window:CreateTab("AutoKillNPC", 4483362458)
+local selectedTool, attackDirection, offsetX, offsetY, offsetZ = "Combat", "Behind", 0, 0, -3
+local VirtualUser = game:GetService("VirtualUser")
+
+AutoKillNPCTab:CreateDropdown({ Name="Attack Direction", Options={"Behind","Above","Below"}, CurrentOption="Behind", Callback=function(opt) attackDirection=opt end })
+AutoKillNPCTab:CreateSlider({ Name="Offset X", Range={-10,10}, Increment=0.5, CurrentValue=0, Callback=function(v) offsetX=v end })
+AutoKillNPCTab:CreateSlider({ Name="Offset Y", Range={-5,5}, Increment=0.5, CurrentValue=0, Callback=function(v) offsetY=v end })
+AutoKillNPCTab:CreateSlider({ Name="Offset Z", Range={-10,10}, Increment=0.5, CurrentValue=-3, Callback=function(v) offsetZ=v end })
+AutoKillNPCTab:CreateDropdown({ Name="Tool to Equip", Options={"Combat","BlackLeg","SkyLance","CandyCane","SeismicGloves","3SS","SorcererCombat","ArkumBow","ObsidianTremor","WaterCombat","1SS","2SS"}, CurrentOption="Combat", Callback=function(opt) selectedTool=opt end })
+
+local function getDirectionOffset()
+    if attackDirection=="Behind" then return Vector3.new(0,0,10) elseif attackDirection=="Above" then return Vector3.new(0,3,0) elseif attackDirection=="Below" then return Vector3.new(0,-3,0) else return Vector3.new(0,0,10) end
+end
+
+local function equipTool() local p=game.Players.LocalPlayer local t=p.Backpack:FindFirstChild(selectedTool) if t then t.Parent=p.Character end end
+local function spamClickTool(flag) while flag() do pcall(function() mouse1click() end) pcall(function() VirtualUser:ClickButton1(Vector2.new(500,500)) end) task.wait(0.1) end end
+
+local configs = {
+    { name="Bandit", questName="BanditQuest", npcName="Bandit", questPos=Vector3.new(-1912,191,3279), guiPath="BanditQuest" },
+    { name="SnowPirate", questName="SnowPirateQuest", npcName="SnowPirate", questPos=Vector3.new(370,27,-2489), guiPath="SnowPirateQuest", clickPartName="Click" },
+    { name="IslandSavage", questName="SavageQuest", npcName="Island Savage", questPos=Vector3.new(-2961,14,-6112), guiPath="SavageQuest" },
+    { name="ToxicZombie", questName="ToxicZombiesQuest", npcName="ToxicZombie", questPos=Vector3.new(3330,4,5840), guiPath="ToxicZombieQuest", clickPartName="Click" },
+    { name="Skeleton", questName="SkeletonQuest", npcName="Skeleton", questPos=Vector3.new(-5231,9,1597), guiPath="SkeletonQuest" },
+    { name="SkyWarrior", questName="SkyWarriorQuest", npcName="Sky Warrior", questPos=Vector3.new(-3685,2281,7798), guiPath="SkyWarriorQuest" },
+    { name="Obsidmon", questName="ObsidimonQuest", npcName="Obsidmon", questPos=Vector3.new(-3647,20,-1177), guiPath="ObsidimonQuest" },
+    { name="Suney", questName="SuneyQuest", npcName="Suney", questPos=Vector3.new(-3061,2553,8609), guiPath="SuneyQuest" }
+}
+
+local function autoFarmNPC(config, flag)
+    coroutine.wrap(function() spamClickTool(flag) end)()
+    while flag() do
+        if not game.Players.LocalPlayer.PlayerGui:FindFirstChild(config.guiPath) then
+            local quest=workspace.Quests:FindFirstChild(config.questName)
+            if quest then
+                local partName=config.clickPartName or "Clek"
+                local clickPart=quest:FindFirstChild(partName)
+                if clickPart then
+                    local cd=clickPart:FindFirstChildWhichIsA("ClickDetector",true)
+                    if cd and cd.Parent then
+                        safeTeleport(cd.Parent.Position+Vector3.new(0,2,-2))
+                        task.wait(0.2)
+                        fireclickdetector(cd)
+                    end
+                end
+            end
+            task.wait(1)
         end
-    })
+        equipTool() task.wait(0.5)
+        for _,npc in ipairs(workspace:GetDescendants()) do
+            if npc:IsA("Model") and npc.Name==config.npcName and npc:FindFirstChild("HumanoidRootPart") then
+                local hum=npc:FindFirstChildOfClass("Humanoid")
+                while flag() and hum and hum.Health>0 do
+                    local offset=Vector3.new(offsetX,offsetY,offsetZ)+getDirectionOffset()
+                    local myhrp=game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+                    if myhrp then myhrp.CFrame=npc.HumanoidRootPart.CFrame*CFrame.new(offset) end
+                    task.wait(0.15)
+                end
+            end
+        end
+        task.wait(0.2)
+    end
 end
 
-createNPCButton("Blacksmith", Vector3.new(-71, 4, -744))
-createNPCButton("Swordstyle Teacher", Vector3.new(973, 28, -3475))
-createNPCButton("BlackLeg Teacher", Vector3.new(-5657, 71, 8648))
-createNPCButton("Electro Teacher", Vector3.new(-451.32, 50.80, 5147.60))
-createNPCButton("ColorsTrap Teacher", Vector3.new(1425, 17, 2431))
-createNPCButton("Boxing Coach", Vector3.new(-6135, 101, 1534))
-createNPCButton("Waterflow Teacher", Vector3.new(6840, 113, -6239))
-createNPCButton("Sorcerer Teacher", Vector3.new(278, 128, -2911))
-createNPCButton("Material Seller (Plouton)", Vector3.new(5787, 33, -5656))
-createNPCButton("Material Seller (Sky)", Vector3.new(-3752, 2281, 7734))
-createNPCButton("Material Seller (Toblorone)", function() end)
-createNPCButton("Doctor Spec", function() end)
-createNPCButton("Cook Spec", Vector3.new(6378, 33, -5648))
-createNPCButton("Team Change NPC", Vector3.new(-3591, 29, -1244))
-createNPCButton("Priest", Vector3.new(-2136, 2626, 9544))
+local toggles={} for _,cfg in ipairs(configs) do toggles[cfg.name]=false AutoKillNPCTab:CreateToggle({Name="AutoFarm "..cfg.name,CurrentValue=false,Callback=function(v) toggles[cfg.name]=v if v then coroutine.wrap(function() autoFarmNPC(cfg,function() return toggles[cfg.name] end) end)() end end}) end
 
--- Misc Tab (complete version)
-local TabMisc = Window:CreateTab("Misc", 4483362458)
+----------------------------------------------------
+-- 🏃 Player Tab
+----------------------------------------------------
+local PlayerTab=Window:CreateTab("Player",4483362458)
+PlayerTab:CreateSlider({Name="WalkSpeed",Range={16,300},Increment=1,CurrentValue=16,Callback=function(v)local h=game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if h then h.WalkSpeed=v end end})
+PlayerTab:CreateSlider({Name="Jump Height",Range={50,250},Increment=10,CurrentValue=50,Callback=function(v)local h=game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if h then h.JumpPower=v end end})
 
--- Create Destroy Button (make sure this is inside the TabMisc context)
-local DestroyButton = TabMisc:CreateButton({
-    Name = "DESTROY UI",
-    Callback = function()
-        Rayfield:Destroy()
-    end,
-})
+----------------------------------------------------
+-- 📍 Quests Tab (ALL quests)
+----------------------------------------------------
+local QuestsTab=Window:CreateTab("Quests",4483362458)
+for _,v in ipairs(configs) do QuestsTab:CreateButton({Name=v.name,Callback=function() safeTeleport(v.questPos) end}) end
+QuestsTab:CreateButton({Name="Haki Quest", Callback=function() safeTeleport(Vector3.new(1644,6,775)) end})
 
--- Make sure no other code is overwriting TabMisc after this
+----------------------------------------------------
+-- 🌴 Islands Tab (ALL islands)
+----------------------------------------------------
+local IslandsTab=Window:CreateTab("Islands",4483362458)
+local function createIslandButton(name,pos) IslandsTab:CreateButton({Name=name,Callback=function() safeTeleport(pos) end}) end
+createIslandButton("Spawn",Vector3.new(-1446.97,16.51,1353.49))
+createIslandButton("Waterfalls", Vector3.new(289.32,10.38,73.82))
+createIslandButton("Snow Island", Vector3.new(224.84,26.80,-2451.32))
+createIslandButton("Savage Island", Vector3.new(-2936.60,13.83,-6129.01))
+createIslandButton("Sky Island", Vector3.new(-4673.35,2157.41,6530.80))
+createIslandButton("Great Desert", Vector3.new(1404.66,16.01,2172.99))
+createIslandButton("Graveyard (Zombie)", Vector3.new(3282,4,5913))
+createIslandButton("Neo Island", Vector3.new(-451.32,50.80,5147.60))
+createIslandButton("Tribal Village (Sakura)", Vector3.new(-5946.32,70.92,8277.21))
+createIslandButton("Toblorone (Skeleton Island)", Vector3.new(-5103,7,1699))
+createIslandButton("Opozite Island (Roku)", Vector3.new(-7289,12,-2650))
+createIslandButton("Grass Land", Vector3.new(-4350,14,-2934))
+createIslandButton("Pidgeon Point", Vector3.new(-2190,136,-383))
+createIslandButton("??? (Rasputin Boss)", Vector3.new(2313,11,-766))
+createIslandButton("Bacalou's House (DF Farm)", Vector3.new(3490,6,527))
+createIslandButton("Super Boss Island", Vector3.new(5867,66,-603))
+createIslandButton("Plouton", Vector3.new(6222,13,-4664))
+createIslandButton("Volcano Island", Vector3.new(-3547,20,-1069))
+
+----------------------------------------------------
+-- 🧍 NPCs Tab (ALL NPCs)
+----------------------------------------------------
+local NPCTab=Window:CreateTab("NPCs",4483362458)
+local function createNPCButton(name,pos) NPCTab:CreateButton({Name=name,Callback=function() safeTeleport(pos) end}) end
+createNPCButton("Blacksmith",Vector3.new(-71,4,-744))
+createNPCButton("Swordstyle Teacher",Vector3.new(973,28,-3475))
+createNPCButton("BlackLeg Teacher",Vector3.new(-5657,71,8648))
+createNPCButton("Electro Teacher",Vector3.new(-451.32,50.80,5147.60))
+createNPCButton("ColorsTrap Teacher",Vector3.new(1425,17,2431))
+createNPCButton("Boxing Coach",Vector3.new(-6135,101,1534))
+createNPCButton("Waterflow Teacher",Vector3.new(6840,113,-6239))
+createNPCButton("Sorcerer Teacher",Vector3.new(278,128,-2911))
+createNPCButton("Material Seller (Plouton)",Vector3.new(5787,33,-5656))
+createNPCButton("Material Seller (Sky)",Vector3.new(-3752,2281,7734))
+createNPCButton("Material Seller (Toblorone)",Vector3.new(-5103,7,1699))
+createNPCButton("Doctor Spec",Vector3.new(-1446,16,1353))
+createNPCButton("Cook Spec",Vector3.new(6378,33,-5648))
+createNPCButton("Team Change NPC",Vector3.new(-3591,29,-1244))
+createNPCButton("Priest",Vector3.new(-2136,2626,9544))
+
+----------------------------------------------------
+-- ⚙️ Misc Tab
+----------------------------------------------------
+local MiscTab=Window:CreateTab("Misc",4483362458)
+MiscTab:CreateButton({Name="DESTROY UI",Callback=function() Rayfield:Destroy() end})
+
+----------------------------------------------------
+-- ✅ Notify
+----------------------------------------------------
+Rayfield:Notify({Title="Loaded!",Content="Z00M-Hub fully ready!",Duration=4})
