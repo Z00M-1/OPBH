@@ -97,7 +97,7 @@ local VirtualUser = game:GetService("VirtualUser")
 AutoKillNPCTab:CreateDropdown({ Name="Attack Direction", Options={"Behind","Above","Below"}, CurrentOption="Behind", Callback=function(opt) attackDirection=opt end })
 AutoKillNPCTab:CreateSlider({ Name="Offset X", Range={-10,10}, Increment=0.5, CurrentValue=0, Callback=function(v) offsetX=v end })
 AutoKillNPCTab:CreateSlider({ Name="Offset Y", Range={-5,5}, Increment=0.5, CurrentValue=0, Callback=function(v) offsetY=v end })
-AutoKillNPCTab:CreateSlider({ Name="Offset Z", Range={-10,10}, Increment=0.5, CurrentValue=-3, Callback=function(v) offsetZ=v end })
+AutoKillNPCTab:CreateSlider({ Name="Offset Z", Range={-10,10}, Increment=0.5, CurrentValue=3, Callback=function(v) offsetZ=v end })
 AutoKillNPCTab:CreateDropdown({ Name="Tool to Equip", Options={"Combat","BlackLeg","SkyLance","CandyCane","SeismicGloves","3SS","SorcererCombat","ArkumBow","ObsidianTremor","WaterCombat","1SS","2SS"}, CurrentOption="Combat", Callback=function(opt) selectedTool=opt end })
 
 local function getDirectionOffset()
