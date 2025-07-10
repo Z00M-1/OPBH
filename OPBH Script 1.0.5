@@ -162,6 +162,100 @@ local PlayerTab=Window:CreateTab("Player",4483362458)
 PlayerTab:CreateSlider({Name="WalkSpeed",Range={16,300},Increment=1,CurrentValue=16,Callback=function(v)local h=game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if h then h.WalkSpeed=v end end})
 PlayerTab:CreateSlider({Name="Jump Height",Range={50,250},Increment=10,CurrentValue=50,Callback=function(v)local h=game.Players.LocalPlayer.Character and game.Players.LocalPlayer.Character:FindFirstChildOfClass("Humanoid") if h then h.JumpPower=v end end})
 
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+local Camera = workspace.CurrentCamera
+local RunService = game:GetService("RunService")
+
+local espRunning = false
+local espObjects = {}
+
+-- ✅ Create text above head
+local function createESPText(player)
+    local text = Drawing.new("Text")
+    text.Text = ""
+    text.Size = 16
+    text.Center = true
+    text.Outline = true
+    text.Color = Color3.fromRGB(0, 255, 0)
+    text.Visible = true
+    text.Transparency = 1
+
+    local conn = RunService.RenderStepped:Connect(function()
+        if player.Character and player.Character.Parent then
+            local head = player.Character:FindFirstChild("Head")
+            local humanoid = player.Character:FindFirstChildOfClass("Humanoid")
+            if head and humanoid then
+                local pos, onScreen = Camera:WorldToViewportPoint(head.Position)
+                if onScreen then
+                    local distance = math.floor((Camera.CFrame.Position - head.Position).Magnitude)
+                    local hp = math.floor(humanoid.Health)
+                    text.Text = string.format("[%s] %d studs | HP: %s", player.Name, distance, hp)
+                    text.Position = Vector2.new(pos.X, pos.Y - 20)
+                    text.Visible = true
+                else
+                    text.Visible = false
+                end
+            else
+                text.Visible = false
+            end
+        else
+            text.Visible = false
+        end
+    end)
+
+    return { text = text, conn = conn }
+end
+
+local function clearESP()
+    for _, data in ipairs(espObjects) do
+        if data.conn then data.conn:Disconnect() end
+        if data.text then data.text:Remove() end
+    end
+    espObjects = {}
+end
+
+local function startESP()
+    espRunning = true
+    clearESP()
+
+    local function addPlayer(player)
+        if player ~= LocalPlayer then
+            if player.Character then
+                table.insert(espObjects, createESPText(player))
+            end
+            player.CharacterAdded:Connect(function()
+                if espRunning then
+                    table.insert(espObjects, createESPText(player))
+                end
+            end)
+        end
+    end
+
+    -- Existing players
+    for _, player in ipairs(Players:GetPlayers()) do
+        addPlayer(player)
+    end
+
+    -- New players join
+    table.insert(espObjects, {
+        conn = Players.PlayerAdded:Connect(addPlayer)
+    })
+end
+
+local function stopESP()
+    espRunning = false
+    clearESP()
+end
+
+-- ✅ Rayfield UI
+PlayerTab:CreateToggle({
+    Name = "Enable Player ESP (Name + Distance + HP)",
+    CurrentValue = false,
+    Callback = function(state)
+        if state then startESP() else stopESP() end
+    end,
+})
 ----------------------------------------------------
 -- 📍 Quests Tab (ALL quests)
 ----------------------------------------------------
