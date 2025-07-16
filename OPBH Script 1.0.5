@@ -86,6 +86,121 @@ MainTab:CreateToggle({ Name="AutoClick Rocks", CurrentValue=false, Callback=func
 MainTab:CreateToggle({ Name="Auto Collect Orange", CurrentValue=false, Callback=function(v) collectingOrange=v if v then coroutine.wrap(function() collectItems(ORANGE_NAME,v) end)() end end })
 MainTab:CreateToggle({ Name="Auto Collect Apples", CurrentValue=false, Callback=function(v) collectingApple=v if v then coroutine.wrap(function() collectItems(APPLE_NAME,v) end)() end end })
 MainTab:CreateToggle({ Name="Auto Jump", CurrentValue=false, Callback=function(v) autoJumping=v if v then coroutine.wrap(autoJumpRoutine)() end end })
+local farming = false
+----------------------------------------------------------------
+local Tab = Window:CreateTab("Auto Money", 4483362458)
+Tab:CreateToggle({
+	Name = "Auto Farm Oranges",
+	CurrentValue = false,
+	Flag = "AutoFarm",
+	Callback = function(Value) farming = Value end,
+})
+
+local OrangeLabel = Tab:CreateLabel("Oranges: 0")
+
+local Players = game:GetService("Players")
+local LocalPlayer = Players.LocalPlayer
+
+local function countOranges()
+	local n=0
+	for _,item in ipairs(LocalPlayer.Backpack:GetChildren()) do
+		if item.Name=="Orange" then n+=1 end
+	end
+	return n
+end
+
+task.spawn(function()
+	while true do
+		if farming then
+			local orangeCount = countOranges()
+			OrangeLabel:Set("Oranges: " .. orangeCount)
+
+			if orangeCount >= 60 then
+				-- SELL PHASE
+				task.wait(2)
+
+				local jungleman = workspace.Quests.Jungleman
+				local npcCd, npcPart
+				for _,d in ipairs(jungleman:GetDescendants()) do
+					if d:IsA("ClickDetector") and d.Parent:IsA("BasePart") then
+						npcCd, npcPart = d, d.Parent
+						break
+					end
+				end
+
+				local hrp = LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+				if npcCd and npcPart and hrp then
+					-- teleport until near
+					while farming do
+						if (npcPart.Position - hrp.Position).Magnitude <= 25 then break end
+						hrp.CFrame = npcPart.CFrame + npcPart.CFrame.LookVector * 3 + Vector3.new(0,3,0)
+						task.wait(0.3)
+					end
+
+					-- click Jungleman until JunglemanQuest appears
+					while farming and not LocalPlayer.PlayerGui:FindFirstChild("JunglemanQuest") do
+						fireclickdetector(npcCd)
+						task.wait(1.2)
+					end
+
+					-- wait until JunglemanQuest disappears
+					while farming and LocalPlayer.PlayerGui:FindFirstChild("JunglemanQuest") do
+						task.wait(0.5)
+					end
+
+					-- finished sell, refresh count
+					task.wait(2)
+					orangeCount = countOranges()
+				end
+
+			else
+				-- FARM PHASE: loop over all trees, not just first
+				while farming and orangeCount < 60 do
+					local foundAny = false
+
+					for _,tree in ipairs(workspace.FruityTrees:GetChildren()) do
+						if not farming then break end
+						if tree.Name=="OrangeTree" then
+							local fruits=tree:FindFirstChild("Fruits")
+							if fruits and #fruits:GetChildren()>0 then
+								foundAny=true
+								-- teleport
+								local tpPart
+								for _,p in ipairs(tree:GetDescendants()) do
+									if p:IsA("BasePart") then tpPart=p; break end
+								end
+								local hrp=LocalPlayer.Character and LocalPlayer.Character:FindFirstChild("HumanoidRootPart")
+								if hrp and tpPart then
+									hrp.CFrame=tpPart.CFrame+Vector3.new(0,5,0)
+									task.wait(0.1)
+								end
+
+								-- click all oranges in this tree
+								for _,orange in ipairs(fruits:GetChildren()) do
+									if not farming then break end
+									local cd=orange:FindFirstChildOfClass("ClickDetector")
+									if cd then fireclickdetector(cd) end
+								end
+
+								orangeCount = countOranges()
+								OrangeLabel:Set("Oranges: "..orangeCount)
+
+								if orangeCount>=60 then break end
+							end
+						end
+					end
+
+					-- if none of the trees had oranges: wait & scan again
+					if not foundAny then task.wait(0.5) end
+
+					-- update count before next cycle
+					orangeCount = countOranges()
+				end
+			end
+		end
+		task.wait(0.2)
+	end
+end)
 
 ----------------------------------------------------
 -- ⚔️ AutoKillNPC Tab
