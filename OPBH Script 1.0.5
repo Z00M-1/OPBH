@@ -134,13 +134,13 @@ task.spawn(function()
 					while farming do
 						if (npcPart.Position - hrp.Position).Magnitude <= 25 then break end
 						hrp.CFrame = npcPart.CFrame + npcPart.CFrame.LookVector * 3 + Vector3.new(0,3,0)
-						task.wait(0.3)
+						task.wait(2)
 					end
 
 					-- click Jungleman until JunglemanQuest appears
 					while farming and not LocalPlayer.PlayerGui:FindFirstChild("JunglemanQuest") do
 						fireclickdetector(npcCd)
-						task.wait(1.2)
+						task.wait(2)
 					end
 
 					-- wait until JunglemanQuest disappears
